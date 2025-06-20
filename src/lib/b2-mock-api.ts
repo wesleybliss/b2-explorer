@@ -1,3 +1,7 @@
+import { S3Client, ListBucketsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+
 export interface Bucket {
   id: string;
   name: string;
@@ -10,42 +14,83 @@ export interface B2File {
   lastModified: string;
 }
 
-const buckets: Bucket[] = [
-  { id: "bucket-1", name: "photos-backup" },
-  { id: "bucket-2", name: "project-archives" },
-  { id: "bucket-3", name: "website-assets" },
-  { id: "bucket-4", name: "personal-documents" },
-];
+interface B2Credentials {
+    keyId: string;
+    applicationKey: string;
+    apiUrl: string;
+    authorizationToken: string;
+    s3ApiUrl: string;
+    accountId: string;
+}
 
-const files: Record<string, B2File[]> = {
-  "photos-backup": [
-    { id: "file-1a", name: "vacation-2023.zip", size: 1024 * 1024 * 500, lastModified: "2023-10-26" },
-    { id: "file-1b", name: "family-gathering.jpg", size: 1024 * 1024 * 5, lastModified: "2023-08-15" },
-    { id: "file-1c", name: "new-years-eve.mov", size: 1024 * 1024 * 1200, lastModified: "2024-01-01" },
-  ],
-  "project-archives": [
-    { id: "file-2a", name: "project-alpha-final.zip", size: 1024 * 1024 * 250, lastModified: "2022-12-20" },
-    { id: "file-2b", name: "project-beta-wireframes.pdf", size: 1024 * 1024 * 15, lastModified: "2023-02-10" },
-  ],
-  "website-assets": [
-    { id: "file-3a", name: "logo.svg", size: 1024 * 10, lastModified: "2024-03-01" },
-    { id: "file-3b", name: "hero-image.png", size: 1024 * 800, lastModified: "2024-03-05" },
-    { id: "file-3c", name: "main.css", size: 1024 * 150, lastModified: "2024-03-10" },
-  ],
-  "personal-documents": [
-     { id: "file-4a", name: "resume.pdf", size: 1024 * 200, lastModified: "2024-02-28" },
-     { id: "file-4b", name: "tax-returns-2023.pdf", size: 1024 * 1024 * 2, lastModified: "2024-03-11" },
-  ],
-};
+function getCredentials(): B2Credentials {
+  const cookieStore = cookies();
+  const credsCookie = cookieStore.get('b2_credentials');
+  if (!credsCookie) {
+    redirect('/');
+  }
+  try {
+    return JSON.parse(credsCookie.value);
+  } catch (e) {
+    console.error("Failed to parse credentials cookie", e);
+    redirect('/');
+  }
+}
+
+function getB2Client() {
+  const credentials = getCredentials();
+  const s3EndpointUrl = new URL(credentials.s3ApiUrl);
+  // The region is part of the S3 endpoint hostname. e.g. s3.us-west-004.backblazeb2.com
+  const region = s3EndpointUrl.hostname.split('.')[1];
+
+  const s3Client = new S3Client({
+    endpoint: credentials.s3ApiUrl,
+    region: region,
+    credentials: {
+      accessKeyId: credentials.keyId,
+      secretAccessKey: credentials.applicationKey,
+    },
+  });
+
+  return s3Client;
+}
+
 
 export const getBuckets = async (): Promise<Bucket[]> => {
-  // Simulate network delay
-  await new Promise(res => setTimeout(res, 500));
-  return buckets;
+    const s3 = getB2Client();
+    try {
+        const command = new ListBucketsCommand({});
+        const response = await s3.send(command);
+        return response.Buckets?.map(bucket => ({
+            id: bucket.Name!,
+            name: bucket.Name!,
+        })) || [];
+    } catch (error) {
+        console.error("Failed to get buckets:", error);
+        // This error is likely due to invalid credentials.
+        // Clear the cookie and redirect to login to allow re-authentication.
+        cookies().delete('b2_credentials');
+        redirect('/?error=auth_failed');
+    }
 };
 
 export const getFiles = async (bucketName: string): Promise<B2File[]> => {
-  // Simulate network delay
-  await new Promise(res => setTimeout(res, 800));
-  return files[bucketName] || [];
+    const s3 = getB2Client();
+    try {
+        const command = new ListObjectsV2Command({ Bucket: bucketName });
+        const response = await s3.send(command);
+
+        return response.Contents?.map(file => ({
+            id: file.Key!,
+            name: file.Key!,
+            size: file.Size || 0,
+            // Format date to YYYY-MM-DD
+            lastModified: file.LastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        })) || [];
+    } catch (error) {
+        console.error(`Failed to get files for bucket ${bucketName}:`, error);
+        // On file listing error, we don't redirect, just return an empty list
+        // to show "Empty Bucket" or a similar message on the page.
+        return [];
+    }
 };
