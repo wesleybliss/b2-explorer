@@ -9,7 +9,8 @@ interface PageProps {
 }
 
 export default async function BucketPage({ params }: PageProps) {
-  const files = await getFiles(params.bucketName);
+  const { bucketName } = await params
+  const files = await getFiles(bucketName);
 
   if (files.length === 0) {
     return (

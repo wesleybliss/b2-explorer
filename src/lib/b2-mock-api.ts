@@ -23,7 +23,7 @@ interface B2Credentials {
     accountId: string;
 }
 
-function getCredentials(): B2Credentials {
+async function getCredentials(): Promise<B2Credentials> {
   const cookieStore = cookies();
   const credsCookie = cookieStore.get('b2_credentials');
   if (!credsCookie) {
@@ -37,8 +37,8 @@ function getCredentials(): B2Credentials {
   }
 }
 
-function getB2Client() {
-  const credentials = getCredentials();
+async function getB2Client() {
+  const credentials = await getCredentials();
   const s3EndpointUrl = new URL(credentials.s3ApiUrl);
   // The region is part of the S3 endpoint hostname. e.g. s3.us-west-004.backblazeb2.com
   const region = s3EndpointUrl.hostname.split('.')[1];
@@ -57,7 +57,7 @@ function getB2Client() {
 
 
 export const getBuckets = async (): Promise<Bucket[]> => {
-    const s3 = getB2Client();
+    const s3 = await getB2Client();
     try {
         const command = new ListBucketsCommand({});
         const response = await s3.send(command);
@@ -75,7 +75,7 @@ export const getBuckets = async (): Promise<Bucket[]> => {
 };
 
 export const getFiles = async (bucketName: string): Promise<B2File[]> => {
-    const s3 = getB2Client();
+    const s3 = await getB2Client();
     try {
         const command = new ListObjectsV2Command({ Bucket: bucketName });
         const response = await s3.send(command);
