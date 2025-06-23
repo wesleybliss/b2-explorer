@@ -2,13 +2,16 @@
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint1": "next lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -53,12 +56,25 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@next/eslint-plugin-next": "^15.3.4",
+    "@stylistic/eslint-plugin-js": "^4.4.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^9.29.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-indent-empty-lines": "^1.0.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "genkit-cli": "^1.8.0",
+    "globals": "^16.2.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.35.0"
+  },
+  "pnpm": {
+    "neverBuiltDependencies": []
   }
 }
