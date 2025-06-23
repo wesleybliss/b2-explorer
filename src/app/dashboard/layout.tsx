@@ -1,16 +1,19 @@
 import { getBuckets } from '@/lib/b2-mock-api'
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarTrigger, SidebarContent } from '@/components/ui/sidebar'
 import { BucketList } from '@/components/bucket-list'
+import BucketsFilterInput from '@/components/buckets-filter-input'
 import { Suspense } from 'react'
 
 export default async function DashboardLayout({
     children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
+    
     const buckets = await getBuckets()
     
     return (
+        
         <SidebarProvider>
             <Sidebar>
                 <SidebarHeader>
@@ -29,8 +32,9 @@ export default async function DashboardLayout({
                         <span className="font-semibold font-headline text-lg group-data-[collapsible=icon]:hidden">B2 Explorer</span>
                     </div>
                 </SidebarHeader>
-                <SidebarContent>
+                <SidebarContent className="p-3">
                     <Suspense fallback={<BucketList.Skeleton />}>
+                        <BucketsFilterInput />
                         <BucketList buckets={buckets} />
                     </Suspense>
                 </SidebarContent>
@@ -45,5 +49,7 @@ export default async function DashboardLayout({
                 </main>
             </SidebarInset>
         </SidebarProvider>
+    
     )
+    
 }

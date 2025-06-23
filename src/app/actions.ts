@@ -34,7 +34,7 @@ export async function login(prevState: FormState, formData: FormData): Promise<F
         }
         
         const data = await response.json()
-        const cookieStore = cookies()
+        const cookieStore = await cookies()
         
         cookieStore.set('b2_credentials', JSON.stringify({
             keyId,

@@ -43,7 +43,11 @@ const baseConfig = {
         'react/jsx-no-literals': 'off',
         'react/jsx-closing-bracket-location': ['error', 'after-props'],
         
-        'no-restricted-globals': ['error', 'document'],
+        'no-restricted-globals': ['error'],
+        // The 'no-undef' rule reports errors for undeclared variables.
+        // 'window', 'document', and 'console' are considered global and are allowed
+        // by the `globals.browser` setting in `languageOptions.globals`.
+        'no-undef': 'error',
         
         'no-restricted-syntax': [
             'error',
@@ -142,6 +146,9 @@ export default [
                 ...globals.browser,
                 process: 'readonly',
                 Logger: 'readonly',
+                'console': 'readonly',
+                window: 'readonly',
+                document: 'readonly',
             },
         },
         ...baseConfig,

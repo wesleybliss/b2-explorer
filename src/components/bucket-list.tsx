@@ -1,8 +1,6 @@
 'use client'
-
+import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Archive } from 'lucide-react'
 import type { Bucket } from '@/lib/b2-mock-api'
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSkeleton } from '@/components/ui/sidebar'
 
@@ -11,11 +9,20 @@ interface BucketListProps {
 }
 
 export function BucketList({ buckets }: BucketListProps) {
+    
     const pathname = usePathname()
+    const searchParams = useSearchParams()
+    
+    // Get the filter value from the URL search params
+    const filter = searchParams.get('filter') || ''
+    
+    const filteredBuckets = filter
+        ? buckets.filter(bucket => bucket.name.toLowerCase().includes(filter))
+        : buckets
     
     return (
         <SidebarMenu>
-            {buckets.map(bucket => {
+            {filteredBuckets.map(bucket => {
                 const isActive = pathname === `/dashboard/bucket/${bucket.name}`
                 
                 return (
@@ -25,7 +32,6 @@ export function BucketList({ buckets }: BucketListProps) {
                             isActive={isActive}
                             tooltip={{ children: bucket.name }}>
                             <Link href={`/dashboard/bucket/${bucket.name}`}>
-                                <Archive />
                                 <span>{bucket.name}</span>
                             </Link>
                         </SidebarMenuButton>

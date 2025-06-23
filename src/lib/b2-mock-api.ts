@@ -24,7 +24,7 @@ interface B2Credentials {
 }
 
 async function getCredentials(): Promise<B2Credentials> {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const credsCookie = cookieStore.get('b2_credentials')
     
     if (!credsCookie) {
@@ -73,7 +73,8 @@ export const getBuckets = async (): Promise<Bucket[]> => {
         console.error('Failed to get buckets:', error)
         // This error is likely due to invalid credentials.
         // Clear the cookie and redirect to login to allow re-authentication.
-        cookies().delete('b2_credentials')
+        const cookieStore = await cookies()
+        cookieStore.delete('b2_credentials')
         redirect('/?error=auth_failed')
     }
 }
