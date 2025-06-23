@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { LoginForm } from '@/components/login-form'
 
 export default function Home() {
@@ -20,7 +21,9 @@ export default function Home() {
                 <h1 className="text-4xl font-bold font-headline">B2 Explorer</h1>
                 <p className="text-muted-foreground">A simple interface to browse your Backblaze B2 buckets.</p>
             </div>
-            <LoginForm />
+            <Suspense fallback={<div>Loading form...</div>}>
+                <LoginForm />
+            </Suspense>
         </main>
     )
 }
