@@ -10,8 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint1": "next lint",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
